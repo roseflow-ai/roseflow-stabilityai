@@ -12,6 +12,10 @@ module Roseflow
           [:path]
         end
 
+        def multipart?
+          false
+        end
+
         def body
           to_h.except(*excluded_keys)
         end

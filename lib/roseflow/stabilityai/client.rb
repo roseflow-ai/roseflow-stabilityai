@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "faraday"
+require "faraday/multipart"
 require "faraday/retry"
 require "faraday/typhoeus"
 require "roseflow/types"
@@ -28,8 +29,14 @@ module Roseflow
       end
 
       def post(operation)
-        response = connection.post(operation.path) do |request|
-          request.body = operation.body
+        if operation.multipart?
+          response = multipart_connection.post(operation.path) do |request|
+            request.body = operation.body
+          end
+        else
+          response = connection.post(operation.path) do |request|
+            request.body = operation.body
+          end
         end
         response
       end
@@ -49,6 +56,20 @@ module Roseflow
           faraday.request :authorization, "Bearer", -> { config.api_key }
           faraday.request :json
           faraday.request :retry, FARADAY_RETRY_OPTIONS
+          faraday.adapter :typhoeus
+        end
+      end
+
+      def multipart_connection
+        @multipart_connection ||= Faraday.new(
+          url: config.api_url,
+          headers: {
+            "Stability-Client-ID" => config.client_id,
+            "Stability-Client-Version" => config.client_version,
+          },
+        ) do |faraday|
+          faraday.request :authorization, "Bearer", -> { config.api_key }
+          faraday.request :multipart
           faraday.adapter :typhoeus
         end
       end

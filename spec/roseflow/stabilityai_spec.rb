@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-RSpec.describe Roseflow::Stabilityai do
+RSpec.describe Roseflow::StabilityAI do
   it "has a version number" do
-    expect(Roseflow::Stabilityai::VERSION).not_to be nil
-  end
-
-  it "does something useful" do
-    expect(false).to eq(true)
+    expect(Roseflow::StabilityAI::VERSION).not_to be nil
   end
 end

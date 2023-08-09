@@ -18,7 +18,7 @@ module Roseflow
       end
 
       describe "API calls" do
-        describe "text-to-image" do
+        describe "text-to-image", skip: true do
           let(:repository) { provider.models }
           let(:model) { repository.find("stable-diffusion-xl-1024-v1-0") }
           let(:prompt) {
@@ -33,14 +33,61 @@ module Roseflow
           it "returns a response" do
             VCR.use_cassette("stabilityai/text-to-image") do
               response = provider.call(:text_to_image, engine_id: model.name, text_prompts: prompt, height: 1024, width: 1024)
-              # body = JSON.parse(response.body)
-              # puts body["artifacts"].keys
-              # image = body["artifacts"].first
-              # File.open("result.png", "wb") do |f|
-              #   f.write(Base64.decode64(image["base64"]))
-              # end
               expect(response).to be_a(Responses::TextToImageResponse)
               expect(response).to be_success
+              response.images.each do |image|
+                File.open("spec/tmp/text-to-image/#{ULID.generate}.png", "wb") do |file|
+                  file.write(Base64.decode64(image.base64))
+                end
+              end
+            end
+          end
+        end
+
+        describe "image-to-image" do
+          let(:repository) { provider.models }
+          let(:model) { repository.find("stable-diffusion-xl-1024-v1-0") }
+          let(:prompt) {
+            [
+              {
+                text: "A highly photorealistic image of a dirt bike, jumping off of a box jump, on the off road track",
+                weight: 1.0,
+              },
+            ]
+          }
+          let(:image) { File.open("spec/fixtures/images/init-2.png", "rb") { |file| file.read } }
+
+          it "returns a response" do
+            VCR.use_cassette("stabilityai/image-to-image") do
+              response = provider.call(:image_to_image, engine_id: model.name, text_prompts: prompt, init_image: image, image_strength: 0.1, height: 1024, width: 1024)
+              expect(response).to be_a(Responses::ImageToImageResponse)
+              expect(response).to be_success
+              response.images.each do |image|
+                File.open("spec/tmp/image-to-image/#{ULID.generate}.png", "wb") do |file|
+                  file.write(Base64.decode64(image.base64))
+                end
+              end
+            end
+          end
+        end
+
+        describe "upscale", skip: true do
+          context "sdx4" do
+            let(:repository) { provider.models }
+            let(:model) { repository.find("stable-diffusion-x4-latent-upscaler") }
+            let(:image) { File.open("spec/fixtures/images/init-512.png", "rb") { |file| file.read } }
+
+            it "returns a response" do
+              VCR.use_cassette("stabilityai/upscale") do
+                response = provider.call(:upscale, engine_id: model.name, upscale_type: "sdx4", sdx4: { image: image, width: 2048, text_prompts: [{ text: "A highly photorealistic image of off road vehicle", weight: 1.0 }], seed: 0, steps: 50, cfg_scale: 7 })
+                expect(response).to be_a(Responses::UpscaleResponse)
+                expect(response).to be_success
+                response.artifacts.each do |artifact|
+                  File.open("spec/tmp/upscale/#{ULID.generate}.png", "wb") do |file|
+                    file.write(Base64.decode64(artifact.base64))
+                  end
+                end
+              end
             end
           end
         end

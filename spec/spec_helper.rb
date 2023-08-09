@@ -4,6 +4,7 @@ require "anyway_config"
 require "vcr"
 require "webmock"
 require "roseflow/stabilityai"
+require "ulid"
 
 Anyway::Settings.use_local_files = true
 

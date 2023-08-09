@@ -13,6 +13,8 @@ module Roseflow
           attribute :finish_reason, Types::String
           attribute :seed, Types::Integer
         end
+
+        alias_method :images, :artifacts
       end
     end
   end

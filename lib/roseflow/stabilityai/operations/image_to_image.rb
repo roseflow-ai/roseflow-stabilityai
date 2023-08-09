@@ -20,8 +20,33 @@ module Roseflow
         attribute :seed, Types::Integer.default(0)
         attribute :style_preset, Types::String.default("photographic")
 
+        def path
+          "/v1/generation/#{engine_id}/image-to-image"
+        end
+
+        def multipart?
+          true
+        end
+
         def type
           :image_to_image
+        end
+
+        def excluded_keys
+          [:path, :engine_id, :text_prompts]
+        end
+
+        def body
+          initial = to_h.except(*excluded_keys)
+          initial.merge(
+            init_image: Faraday::Multipart::ParamPart.new(
+              init_image,
+              "image/png",
+            ),
+            text_prompts: text_prompts.each_with_index.map do |item, index|
+              [index, item.to_h]
+            end.to_h,
+          )
         end
       end
     end

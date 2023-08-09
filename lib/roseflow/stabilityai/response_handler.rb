@@ -4,6 +4,7 @@ require "roseflow/stabilityai/responses/text_to_image_response"
 require "roseflow/stabilityai/responses/image_to_image_response"
 require "roseflow/stabilityai/responses/upscale_response"
 require "roseflow/stabilityai/responses/masking_response"
+require "roseflow/stabilityai/responses/error_response"
 
 module Roseflow
   module StabilityAI
@@ -43,6 +44,8 @@ module Roseflow
       end
 
       def handle_error_response
+        puts response.status
+        puts JSON.parse(response.body)
         Responses::ErrorResponse.from(
           code: response.status,
           operation: operation.type,
