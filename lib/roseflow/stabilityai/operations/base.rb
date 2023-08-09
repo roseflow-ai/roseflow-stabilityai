@@ -13,7 +13,7 @@ module Roseflow
         end
 
         def multipart?
-          false
+          true
         end
 
         def body

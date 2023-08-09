@@ -18,7 +18,7 @@ module Roseflow
       end
 
       describe "API calls" do
-        describe "text-to-image", skip: true do
+        describe "text-to-image" do
           let(:repository) { provider.models }
           let(:model) { repository.find("stable-diffusion-xl-1024-v1-0") }
           let(:prompt) {
@@ -71,7 +71,7 @@ module Roseflow
           end
         end
 
-        describe "upscale", skip: true do
+        describe "upscale" do
           context "sdx4" do
             let(:repository) { provider.models }
             let(:model) { repository.find("stable-diffusion-x4-latent-upscaler") }
@@ -86,6 +86,34 @@ module Roseflow
                   File.open("spec/tmp/upscale/#{ULID.generate}.png", "wb") do |file|
                     file.write(Base64.decode64(artifact.base64))
                   end
+                end
+              end
+            end
+          end
+        end
+
+        describe "masking" do
+          let(:repository) { provider.models }
+          let(:model) { repository.find("stable-diffusion-xl-1024-v1-0") }
+          let(:prompt) {
+            [
+              {
+                text: "A highly photorealistic image of a white horse",
+                weight: 1.0,
+              },
+            ]
+          }
+          let(:image) { File.open("spec/fixtures/images/init-2.png", "rb") { |file| file.read } }
+          let(:mask) { File.open("spec/fixtures/images/mask.png", "rb") { |file| file.read } }
+
+          it "returns a response" do
+            VCR.use_cassette("stabilityai/masking") do
+              response = provider.call(:masking, engine_id: model.name, text_prompts: prompt, init_image: image, mask_image: mask, height: 1024, width: 1024)
+              expect(response).to be_a(Responses::MaskingResponse)
+              expect(response).to be_success
+              response.images.each do |image|
+                File.open("spec/tmp/masking/#{ULID.generate}.png", "wb") do |file|
+                  file.write(Base64.decode64(image.base64))
                 end
               end
             end

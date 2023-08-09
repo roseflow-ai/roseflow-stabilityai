@@ -12,3 +12,4 @@
 Gemfile.lock
 Gemfile.local
 /config/stabilityai.local.yml
+/spec/tmp

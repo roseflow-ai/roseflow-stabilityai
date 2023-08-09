@@ -24,10 +24,6 @@ module Roseflow
           "/v1/generation/#{engine_id}/image-to-image"
         end
 
-        def multipart?
-          true
-        end
-
         def type
           :image_to_image
         end

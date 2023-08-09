@@ -24,6 +24,10 @@ module Roseflow
           :text_to_image
         end
 
+        def multipart?
+          false
+        end
+
         def path
           "/v1/generation/#{engine_id}/text-to-image"
         end

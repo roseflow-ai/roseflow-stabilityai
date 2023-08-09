@@ -21,6 +21,30 @@ module Roseflow
         attribute :steps, Types::Integer.default(50)
         attribute :style_preset, Types::String.default("photographic")
 
+        def path
+          "/v1/generation/#{engine_id}/image-to-image/masking"
+        end
+
+        def excluded_keys
+          [:path, :engine_id, :text_prompts, :mask_image]
+        end
+
+        def body
+          to_h.except(*excluded_keys).merge(
+            init_image: Faraday::Multipart::ParamPart.new(
+              init_image,
+              "image/png",
+            ),
+            # mask_image: Faraday::Multipart::ParamPart.new(
+            #   mask_image,
+            #   "image/png",
+            # ),
+            text_prompts: text_prompts.each_with_index.map do |item, index|
+              [index, item.to_h]
+            end.to_h,
+          )
+        end
+
         def type
           :masking
         end

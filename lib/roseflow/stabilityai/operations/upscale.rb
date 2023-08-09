@@ -2,6 +2,7 @@
 
 require "roseflow/stabilityai/operations/base"
 
+# TODO: Very sharp operation class currently, needs to handle edge cases better.
 module Roseflow
   module StabilityAI
     module Operations
@@ -31,10 +32,6 @@ module Roseflow
           "/v1/generation/#{engine_id}/image-to-image/upscale"
         end
 
-        def multipart?
-          true
-        end
-
         def excluded_keys
           [:path, :engine_id, :text_prompts, :upscale_type, :esrgan, :sdx4]
         end
@@ -62,6 +59,13 @@ module Roseflow
         end
 
         def esrgan_body
+          initial = to_h.except(*excluded_keys)
+          esrgan.to_h.merge(
+            image: Faraday::Multipart::ParamPart.new(
+              esrgan.image,
+              "image/png",
+            ),
+          ).merge(initial)
         end
 
         def type
